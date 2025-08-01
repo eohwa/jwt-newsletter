@@ -1,0 +1,109 @@
+/*
+Theme Name: Assemble Child
+Description: Child theme for personalized newsletter prototype
+Template: twentytwentyfour
+Version: 1.0.0
+*/
+
+@import url("../twentytwentyfour/style.css");
+
+/* Custom styles for newsletter template */
+.newsletter-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 2rem;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.newsletter-greeting {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.newsletter-topics {
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.story-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+.story-card {
+  border: 1px solid #e1e5e9;
+  border-radius: 8px;
+  padding: 1.5rem;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.story-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.story-tag {
+  display: inline-block;
+  background: #f8f9fa;
+  color: #495057;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.story-tag.esg {
+  background: #d4edda;
+  color: #155724;
+}
+.story-tag.dei {
+  background: #cce5ff;
+  color: #004085;
+}
+.story-tag.exb {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.premium-block {
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  border: 2px solid #f1c40f;
+  border-radius: 8px;
+  padding: 2rem;
+  margin: 2rem 0;
+  text-align: center;
+}
+
+.premium-badge {
+  background: #f39c12;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: bold;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.error-message {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 1rem;
+  border-radius: 4px;
+  margin: 1rem 0;
+  border: 1px solid #f5c6cb;
+}
+
+.chart-container,
+.poll-container {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
