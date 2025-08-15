@@ -3,43 +3,90 @@ const jwt = require("jsonwebtoken")
 // Use environment variable or fallback for development
 const SECRET_KEY = process.env.JWT_SECRET || "dev-secret-change-in-production"
 
-const testUsers = {
-  aaron: {
-    sub: "123",
-    first_name: "Aaron",
-    email: "aaron@example.com",
-    topics: ["esg", "dei"],
-    tier: "Standard",
-  },
-  sarah: {
-    sub: "456",
-    first_name: "Sarah",
-    email: "sarah@example.com",
-    topics: ["social-media", "senior"],
-    tier: "Gold",
-  },
-  demo: {
-    sub: "789",
-    first_name: "Demo User",
-    email: "demo@example.com",
-    topics: ["esg", "dei", "social-media", "senior"],
-    tier: "Gold",
-  },
-  executive: {
-    sub: "101",
-    first_name: "Executive",
-    email: "exec@example.com",
-    topics: ["senior", "esg"],
-    tier: "Gold",
-  },
-  social: {
-    sub: "202",
-    first_name: "Social Manager",
-    email: "social@example.com",
-    topics: ["social-media", "dei"],
-    tier: "Standard",
-  },
+// Parse user profiles from environment variables
+function getUserProfiles() {
+  const usersEnv = process.env.NEWSLETTER_USERS
+
+  if (!usersEnv) {
+    // Fallback to default users
+    return {
+      aaron: {
+        sub: "123",
+        first_name: "Aaron",
+        email: "aaron@example.com",
+        topics: ["talent-marketing", "supply-chain"],
+        tier: "Standard",
+      },
+      marketing: {
+        sub: "456",
+        first_name: "Marketing Manager",
+        email: "marketing@example.com",
+        topics: ["talent-marketing"],
+        tier: "Standard",
+      },
+      supply: {
+        sub: "789",
+        first_name: "Supply Chain Manager",
+        email: "supply@example.com",
+        topics: ["supply-chain"],
+        tier: "Gold",
+      },
+      demo: {
+        sub: "101",
+        first_name: "Demo User",
+        email: "demo@example.com",
+        topics: ["talent-marketing", "supply-chain", "esg", "dei"],
+        tier: "Gold",
+      },
+      executive: {
+        sub: "202",
+        first_name: "Executive",
+        email: "exec@example.com",
+        topics: ["senior", "esg"],
+        tier: "Gold",
+      },
+      social: {
+        sub: "303",
+        first_name: "Social Manager",
+        email: "social@example.com",
+        topics: ["social-media", "dei"],
+        tier: "Standard",
+      },
+    }
+  }
+
+  try {
+    const profiles = JSON.parse(usersEnv)
+    const testUsers = {}
+
+    profiles.forEach((profile) => {
+      testUsers[profile.key] = {
+        sub: Math.random().toString().substr(2, 9),
+        first_name: profile.name,
+        email: profile.email,
+        topics: profile.topics,
+        tier: profile.tier,
+      }
+    })
+
+    return testUsers
+  } catch (error) {
+    console.error("Error parsing NEWSLETTER_USERS:", error)
+    console.log("Using default user profiles...")
+
+    return {
+      aaron: {
+        sub: "123",
+        first_name: "Aaron",
+        email: "aaron@example.com",
+        topics: ["talent-marketing"],
+        tier: "Standard",
+      },
+    }
+  }
 }
+
+const testUsers = getUserProfiles()
 
 function generateLink(userKey = "aaron", baseUrl = "https://your-app.vercel.app") {
   const user = testUsers[userKey]
