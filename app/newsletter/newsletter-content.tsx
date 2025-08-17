@@ -4,7 +4,6 @@ import { useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import jwt from "jsonwebtoken"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { createRSSParser } from "@/lib/rss-parser"
 
 interface UserData {
@@ -23,7 +22,6 @@ interface Story {
   content: string
   topic: string
   link: string
-  hasChart?: boolean
   hasPoll?: boolean
   publishedDate: string
 }
@@ -112,7 +110,6 @@ export default function NewsletterContent() {
         content: post.content,
         topic: topics.find((topic) => post.categories.some((cat) => cat.includes(topic))) || topics[0],
         link: post.link,
-        hasChart: Math.random() > 0.7,
         hasPoll: Math.random() > 0.6,
         publishedDate: post.publishedDate,
       }))
@@ -233,23 +230,6 @@ export default function NewsletterContent() {
                     </CardHeader>
                     <CardContent>
                       <p className="text-gray-600 mb-4">{story.excerpt}</p>
-
-                      {/* Chart Integration */}
-                      {story.hasChart && (
-                        <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                          <h4 className="font-semibold mb-3 flex items-center">📊 Data Visualization</h4>
-                          <ResponsiveContainer width="100%" height={200}>
-                            <BarChart data={esgData}>
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="name" fontSize={12} />
-                              <YAxis />
-                              <Tooltip />
-                              <Bar dataKey="value" fill="#10b981" />
-                              <Bar dataKey="target" fill="#6b7280" />
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </div>
-                      )}
 
                       <div className="mt-4">
                         <a
