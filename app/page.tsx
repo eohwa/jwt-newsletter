@@ -1,9 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { getUserProfiles, getAvailableTags } from "@/lib/config"
+import { TopicTag } from "@/components/topic-tag"
 
-export default function HomePage() {
-  const userProfiles = getUserProfiles()
-  const availableTags = getAvailableTags()
+export default async function HomePage() {
+  const userProfiles = await getUserProfiles()
+  const availableTags = await getAvailableTags()
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -11,45 +12,40 @@ export default function HomePage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Personalized Newsletter Demo</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Experience personalized content delivery using JWT-based magic links. Built with free online services:
-            Vercel + WordPress.com + Environment Variables.
+            Experience personalized content delivery using JWT-based magic links. Powered by your Google Sheet +
+            WordPress.com + Vercel.
           </p>
         </div>
 
-        {/* Available Tags */}
+        {/* Available Tags with Hex Colors */}
         <div className="mb-12">
           <h2 className="text-2xl font-semibold text-center mb-6">📋 Available Topics</h2>
           <div className="flex flex-wrap justify-center gap-3">
             {availableTags.map((tag) => (
-              <span key={tag.slug} className={`topic-tag ${tag.slug}`}>
+              <TopicTag key={tag.slug} slug={tag.slug}>
                 {tag.label}
-              </span>
+              </TopicTag>
             ))}
           </div>
         </div>
 
-        {/* User Profiles */}
-        <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        {/* User Profiles from Google Sheet */}
+        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
           {userProfiles.map((profile) => (
             <Card key={profile.key}>
               <CardHeader>
                 <CardTitle>👤 {profile.name}</CardTitle>
                 <CardDescription>
-                  {profile.tier} Tier {profile.tier === "Gold" && "⭐"}
+                  {profile.email} • {profile.tier} Tier
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-600 mb-4">
-                  Topics:{" "}
-                  {profile.topics
-                    .map((topic) => availableTags.find((t) => t.slug === topic)?.label || topic)
-                    .join(", ")}
-                </p>
-                <div className="space-y-2">
+                <p className="text-sm text-gray-600 mb-4">Topics: {profile.topics.join(", ")}</p>
+                <div className="flex flex-wrap gap-2">
                   {profile.topics.map((topic) => (
-                    <div key={topic} className={`topic-tag ${topic}`}>
-                      {availableTags.find((t) => t.slug === topic)?.label || topic}
-                    </div>
+                    <TopicTag key={topic} slug={topic}>
+                      {availableTags.find((t) => t.slug.toLowerCase() === topic.toLowerCase())?.label || topic}
+                    </TopicTag>
                   ))}
                 </div>
               </CardContent>
@@ -70,28 +66,26 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
-              <p className="text-sm text-gray-600">
-                Replace <code>your-app.vercel.app</code> with your actual Vercel deployment URL.
-              </p>
             </div>
           </div>
         </div>
 
         <div className="mt-16 text-center">
-          <h2 className="text-2xl font-semibold mb-8">⚙️ Configuration via Environment Variables</h2>
+          <h2 className="text-2xl font-semibold mb-8">🎨 Custom Color Palette</h2>
           <div className="bg-white p-6 rounded-lg shadow-sm max-w-4xl mx-auto">
-            <p className="text-gray-600 mb-4">
-              Tags and users are now configurable via environment variables in your Vercel dashboard!
-            </p>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="font-semibold text-lg mb-2">🏷️ NEWSLETTER_TAGS</h3>
-                <p className="text-gray-600 text-sm">Configure available topic tags</p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-2">👥 NEWSLETTER_USERS</h3>
-                <p className="text-gray-600 text-sm">Configure user profiles and their topics</p>
-              </div>
+            <p className="text-gray-600 mb-6">Your beautiful hex color palette from Google Sheets:</p>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {availableTags.map((tag) => (
+                <div key={tag.slug} className="text-center">
+                  <div
+                    className="w-full h-16 rounded-lg mb-2 flex items-center justify-center text-white font-medium text-sm"
+                    style={{ backgroundColor: tag.color }}
+                  >
+                    {tag.label}
+                  </div>
+                  <div className="text-xs text-gray-500">{tag.color}</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

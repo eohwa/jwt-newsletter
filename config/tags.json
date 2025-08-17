@@ -1,0 +1,64 @@
+{
+  "availableTags": [
+    {
+      "slug": "talent-marketing",
+      "label": "Talent & Marketing",
+      "color": "purple"
+    },
+    {
+      "slug": "supply-chain",
+      "label": "Supply Chain",
+      "color": "orange"
+    },
+    {
+      "slug": "esg",
+      "label": "ESG & Sustainability",
+      "color": "green"
+    },
+    {
+      "slug": "dei",
+      "label": "Diversity & Inclusion",
+      "color": "blue"
+    },
+    {
+      "slug": "social-media",
+      "label": "Social Media & Digital",
+      "color": "pink"
+    },
+    {
+      "slug": "senior",
+      "label": "Senior Leadership",
+      "color": "amber"
+    }
+  ],
+  "userProfiles": [
+    {
+      "key": "aaron",
+      "name": "Aaron",
+      "email": "aaron@example.com",
+      "topics": ["talent-marketing", "supply-chain"],
+      "tier": "Standard"
+    },
+    {
+      "key": "marketing",
+      "name": "Marketing Manager",
+      "email": "marketing@example.com",
+      "topics": ["talent-marketing"],
+      "tier": "Standard"
+    },
+    {
+      "key": "supply",
+      "name": "Supply Chain Manager",
+      "email": "supply@example.com",
+      "topics": ["supply-chain"],
+      "tier": "Gold"
+    },
+    {
+      "key": "demo",
+      "name": "Demo User",
+      "email": "demo@example.com",
+      "topics": ["talent-marketing", "supply-chain", "esg", "dei"],
+      "tier": "Gold"
+    }
+  ]
+}

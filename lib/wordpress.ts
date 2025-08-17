@@ -128,6 +128,10 @@ export class WordPressAPI {
 
 // Create a singleton instance
 export function createWordPressAPI(siteUrl?: string): WordPressAPI {
-  const wpSiteUrl = siteUrl || process.env.WORDPRESS_SITE_URL || "demo.wordpress.com"
+  // Try multiple ways to get the WordPress site URL
+  const wpSiteUrl =
+    siteUrl || process.env.WORDPRESS_SITE_URL || process.env.NEXT_PUBLIC_WORDPRESS_SITE_URL || "demo.wordpress.com"
+
+  console.log("WordPress Site URL:", wpSiteUrl) // Debug log
   return new WordPressAPI(wpSiteUrl)
 }

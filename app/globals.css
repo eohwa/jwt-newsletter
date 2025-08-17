@@ -130,26 +130,4 @@
   @apply border border-gray-200 rounded-lg p-6 bg-white shadow-sm hover:shadow-md transition-shadow;
 }
 
-.topic-tag {
-  @apply inline-block px-3 py-1 rounded-full text-sm font-medium;
-}
-
-.topic-tag.esg {
-  @apply bg-green-100 text-green-800;
-}
-
-.topic-tag.dei {
-  @apply bg-blue-100 text-blue-800;
-}
-
-.topic-tag.social-media {
-  @apply bg-pink-100 text-pink-800;
-}
-
-.topic-tag.senior {
-  @apply bg-amber-100 text-amber-800;
-}
-
-.premium-block {
-  @apply bg-gradient-to-r from-yellow-400 to-yellow-600 text-white rounded-lg p-6 text-center;
-}
+/* Remove the old static topic tag classes - we'll use dynamic colors now */

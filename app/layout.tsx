@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: "Personalized Newsletter",
   description: "JWT-based personalized newsletter prototype",
   robots: "noindex, nofollow",
-    generator: 'v0.dev'
+    generator: 'v0.app'
 }
 
 export default function RootLayout({

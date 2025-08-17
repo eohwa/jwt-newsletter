@@ -1,3 +1,4 @@
+// Simple config without Google Sheets dependency
 export interface TagConfig {
   slug: string
   label: string
@@ -12,93 +13,43 @@ export interface UserProfile {
   tier: string
 }
 
-// Parse environment variables for tags
-export function getAvailableTags(): TagConfig[] {
-  const tagsEnv = process.env.NEWSLETTER_TAGS || process.env.NEXT_PUBLIC_NEWSLETTER_TAGS
+// Static configuration - you can modify these as needed
+const availableTags: TagConfig[] = [
+  { slug: "supply-chain", label: "Supply Chain", color: "#035E66" },
+  { slug: "talent-marketing", label: "Talent & Marketing", color: "#3AC6CD" },
+  { slug: "dei", label: "Diversity & Inclusion", color: "#422147" },
+  { slug: "esg", label: "ESG & Sustainability", color: "#002642" },
+]
 
-  if (!tagsEnv) {
-    // Fallback to default tags if not configured
-    return [
-      { slug: "talent-marketing", label: "Talent & Marketing", color: "purple" },
-      { slug: "supply-chain", label: "Supply Chain", color: "orange" },
-      { slug: "esg", label: "ESG & Sustainability", color: "green" },
-      { slug: "dei", label: "Diversity & Inclusion", color: "blue" },
-      { slug: "social-media", label: "Social Media & Digital", color: "pink" },
-      { slug: "senior", label: "Senior Leadership", color: "amber" },
-    ]
-  }
+const userProfiles: UserProfile[] = [
+  {
+    key: "cale",
+    name: "Cale",
+    email: "cale.h.johnson@gmail.com",
+    topics: ["supply-chain", "talent-marketing"],
+    tier: "Standard",
+  },
+  {
+    key: "pete",
+    name: "Pete",
+    email: "cale@board.org",
+    topics: ["dei", "esg"],
+    tier: "Standard",
+  },
+]
 
-  try {
-    // Parse JSON from environment variable
-    return JSON.parse(tagsEnv)
-  } catch (error) {
-    console.error("Error parsing NEWSLETTER_TAGS:", error)
-    // Return default tags on parse error
-    return [
-      { slug: "talent-marketing", label: "Talent & Marketing", color: "purple" },
-      { slug: "supply-chain", label: "Supply Chain", color: "orange" },
-    ]
-  }
+export async function getAvailableTags(): Promise<TagConfig[]> {
+  return availableTags
 }
 
-// Parse environment variables for user profiles
-export function getUserProfiles(): UserProfile[] {
-  const usersEnv = process.env.NEWSLETTER_USERS || process.env.NEXT_PUBLIC_NEWSLETTER_USERS
-
-  if (!usersEnv) {
-    // Fallback to default users
-    return [
-      {
-        key: "aaron",
-        name: "Aaron",
-        email: "aaron@example.com",
-        topics: ["talent-marketing", "supply-chain"],
-        tier: "Standard",
-      },
-      {
-        key: "demo",
-        name: "Demo User",
-        email: "demo@example.com",
-        topics: ["talent-marketing", "supply-chain", "esg", "dei"],
-        tier: "Gold",
-      },
-    ]
-  }
-
-  try {
-    return JSON.parse(usersEnv)
-  } catch (error) {
-    console.error("Error parsing NEWSLETTER_USERS:", error)
-    return [
-      {
-        key: "aaron",
-        name: "Aaron",
-        email: "aaron@example.com",
-        topics: ["talent-marketing"],
-        tier: "Standard",
-      },
-    ]
-  }
+export async function getUserProfiles(): Promise<UserProfile[]> {
+  return userProfiles
 }
 
 export function getTagLabels(): Record<string, string> {
-  const tags = getAvailableTags()
   const labels: Record<string, string> = {}
-
-  tags.forEach((tag) => {
-    labels[tag.slug] = tag.label
+  availableTags.forEach((tag) => {
+    labels[tag.slug.toLowerCase()] = tag.label
   })
-
   return labels
-}
-
-export function getTagColors(): Record<string, string> {
-  const tags = getAvailableTags()
-  const colors: Record<string, string> = {}
-
-  tags.forEach((tag) => {
-    colors[tag.slug] = tag.color
-  })
-
-  return colors
 }

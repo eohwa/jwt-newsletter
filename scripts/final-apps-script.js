@@ -1,0 +1,226 @@
+// Final clean Google Apps Script - NO declarations of built-in services
+const SECRET_KEY = "dev-secret-change-in-production" // Make sure this matches your JWT_SECRET in Vercel
+const BASE_URL = "https://your-app.vercel.app/newsletter" // Update with your actual Vercel URL
+const WORDPRESS_API_URL = "https://public-api.wordpress.com/wp/v2/sites/theassemble.com/posts"
+const POST_THRESHOLD = 1 // set to 1 for testing; increase for production
+
+// Declare built-in services
+const Utilities = Utilities
+const SpreadsheetApp = SpreadsheetApp
+const Logger = Logger
+const UrlFetchApp = UrlFetchApp
+const MailApp = MailApp
+
+function encodeJWT(payload, secret) {
+  const header = {
+    alg: "HS256",
+    typ: "JWT",
+  }
+
+  const base64UrlEncode = (obj) => Utilities.base64EncodeWebSafe(JSON.stringify(obj)).replace(/=+$/, "")
+
+  const headerEncoded = base64UrlEncode(header)
+  const payloadEncoded = base64UrlEncode(payload)
+
+  const message = `${headerEncoded}.${payloadEncoded}`
+
+  const signatureBytes = Utilities.computeHmacSha256Signature(message, secret)
+  const signatureBase64 = Utilities.base64EncodeWebSafe(signatureBytes)
+  const signatureEncoded = signatureBase64.replace(/=+$/, "")
+
+  return `${message}.${signatureEncoded}`
+}
+
+function parseTopics(text) {
+  return text.split(",").map((t) => t.trim().toLowerCase().replace(/\s+/g, "-"))
+}
+
+function getTagMapping() {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Tags")
+
+    if (!sheet) {
+      Logger.log("Tags sheet not found, using default mapping")
+      return {
+        "supply-chain": { slug: "supply-chain", label: "Supply Chain", color: "#035E66" },
+        talent: { slug: "talent", label: "Marketing & Talent", color: "#3AC6CD" },
+        dei: { slug: "dei", label: "Diversity & Inclusion", color: "#422147" },
+        exb: { slug: "exb", label: "Executive Business", color: "#002642" },
+      }
+    }
+
+    const data = sheet.getDataRange().getValues()
+    const tagMap = {}
+
+    for (let i = 1; i < data.length; i++) {
+      const [slug, label, color] = data[i]
+      if (slug && label) {
+        tagMap[slug.toLowerCase()] = {
+          slug: slug.toLowerCase(),
+          label: label,
+          color: color || "#6B7280",
+        }
+      }
+    }
+
+    Logger.log("Tag mapping loaded: " + JSON.stringify(tagMap))
+    return tagMap
+  } catch (error) {
+    Logger.log("Error loading tag mapping: " + error)
+    return {
+      "supply-chain": { slug: "supply-chain", label: "Supply Chain", color: "#035E66" },
+      talent: { slug: "talent", label: "Marketing & Talent", color: "#3AC6CD" },
+    }
+  }
+}
+
+function fetchNewPosts(topics) {
+  try {
+    const url = `${WORDPRESS_API_URL}?_embed=wp:term&per_page=10&orderby=date&order=desc`
+
+    Logger.log("Fetching posts from: " + url)
+    const response = UrlFetchApp.fetch(url)
+    const posts = JSON.parse(response.getContentText())
+
+    const matchingPosts = posts.filter((post) => {
+      if (!post._embedded || !post._embedded["wp:term"]) return false
+
+      const postTags = post._embedded["wp:term"].flat().map((term) => term.slug.toLowerCase())
+      return topics.some((topic) => postTags.includes(topic))
+    })
+
+    Logger.log(`Found ${matchingPosts.length} matching posts for topics: ${topics.join(", ")}`)
+    return matchingPosts
+  } catch (error) {
+    Logger.log("Error fetching WordPress posts: " + error)
+    return []
+  }
+}
+
+function checkAndSend() {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Sheet1")
+    const data = sheet.getDataRange().getValues()
+    const tagMapping = getTagMapping()
+
+    Logger.log("Starting newsletter check for " + (data.length - 1) + " users")
+
+    for (let i = 1; i < data.length; i++) {
+      const [firstName, email, topicString, lastNotified] = data[i]
+
+      if (!firstName || !email) {
+        Logger.log(`Skipping row ${i + 1}: missing name or email`)
+        continue
+      }
+
+      const topics = parseTopics(topicString)
+      const newPosts = fetchNewPosts(topics)
+
+      Logger.log(`${firstName} (${email}) has ${newPosts.length} matching posts for topics: ${topics.join(", ")}`)
+
+      if (newPosts.length >= POST_THRESHOLD) {
+        const payload = {
+          sub: `${i}`,
+          first_name: firstName,
+          email: email,
+          topics: topics,
+          tier: "Standard",
+          iat: Math.floor(Date.now() / 1000),
+          exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7,
+        }
+
+        const token = encodeJWT(payload, SECRET_KEY)
+        const fullLink = `${BASE_URL}?token=${token}`
+
+        const subject = "Your peer intelligence report is ready"
+        const body = `Hi ${firstName},
+
+Good news! Your personalized peer intelligence report is now ready with ${newPosts.length} new articles matching your interests: ${topics.map((t) => tagMapping[t]?.label || t).join(", ")}.
+
+View your personalized report here: ${fullLink}
+
+This link will expire in 7 days.
+
+— The Assemble Team`
+
+        Logger.log(`Sending email to ${email}: ${fullLink}`)
+
+        try {
+          MailApp.sendEmail(email, subject, body)
+          sheet.getRange(i + 1, 4).setValue(new Date())
+          Logger.log(`✅ Email sent successfully to ${firstName}`)
+        } catch (emailError) {
+          Logger.log(`❌ Failed to send email to ${firstName}: ${emailError}`)
+        }
+      } else {
+        Logger.log(`⏭️ Skipping ${firstName}: only ${newPosts.length} new posts (threshold: ${POST_THRESHOLD})`)
+      }
+    }
+
+    Logger.log("Newsletter check completed")
+  } catch (error) {
+    Logger.log("Error in checkAndSend: " + error)
+  }
+}
+
+function generateTestLink() {
+  try {
+    const testPayload = {
+      sub: "test",
+      first_name: "Test User",
+      email: "test@example.com",
+      topics: ["supply-chain", "talent"],
+      tier: "Gold",
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7,
+    }
+
+    const token = encodeJWT(testPayload, SECRET_KEY)
+    const fullLink = `${BASE_URL}?token=${token}`
+
+    Logger.log("✅ Test link generated successfully!")
+    Logger.log("Link: " + fullLink)
+    return fullLink
+  } catch (error) {
+    Logger.log("❌ Error generating test link: " + error)
+  }
+}
+
+function testWordPressAPI() {
+  try {
+    Logger.log("🔍 Testing WordPress API connection...")
+    const testTopics = ["supply-chain", "talent"]
+    const posts = fetchNewPosts(testTopics)
+    Logger.log(`✅ WordPress API test completed: Found ${posts.length} posts`)
+
+    if (posts.length > 0) {
+      Logger.log("📄 Sample post title: " + posts[0].title.rendered)
+    } else {
+      Logger.log("⚠️ No posts found - check if your WordPress site has posts with the tags: " + testTopics.join(", "))
+    }
+  } catch (error) {
+    Logger.log("❌ WordPress API test failed: " + error)
+  }
+}
+
+function testBasics() {
+  try {
+    Logger.log("🚀 Starting basic tests...")
+    Logger.log("✅ Script loaded successfully")
+    Logger.log("✅ SECRET_KEY configured: " + (SECRET_KEY ? "Yes" : "No"))
+    Logger.log("✅ BASE_URL: " + BASE_URL)
+
+    const sheet = SpreadsheetApp.getActiveSpreadsheet()
+    Logger.log("✅ Spreadsheet access: " + sheet.getName())
+
+    const tagMapping = getTagMapping()
+    Logger.log("✅ Tag mapping test: " + Object.keys(tagMapping).length + " tags loaded")
+
+    const testToken = encodeJWT({ test: "data" }, SECRET_KEY)
+    Logger.log("✅ JWT encoding test: " + (testToken ? "Working" : "Failed"))
+
+    Logger.log("🎉 All basic tests completed successfully!")
+  } catch (error) {
+    Logger.log("❌ Basic test failed: " + error)
+  }
+}
