@@ -1,4 +1,4 @@
-// RSS Feed Parser for theassemble.com
+// Updated RSS Feed Parser with multiple fallback methods
 interface RSSPost {
   title: string
   excerpt: string
@@ -16,53 +16,100 @@ export class RSSParser {
   }
 
   async getPosts(): Promise<RSSPost[]> {
-    try {
-      console.log("Fetching RSS feed:", this.feedUrl)
+    // Try multiple methods to fetch the RSS feed
+    const methods = [() => this.fetchWithAllOrigins(), () => this.fetchWithCorsAnywhere(), () => this.fetchDirect()]
 
-      // Use a CORS proxy to fetch the RSS feed
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(this.feedUrl)}`
-      const response = await fetch(proxyUrl)
-
-      if (!response.ok) {
-        throw new Error(`RSS fetch error: ${response.status}`)
+    for (const method of methods) {
+      try {
+        const posts = await method()
+        if (posts.length > 0) {
+          console.log(`✅ RSS fetch successful with method`)
+          return posts
+        }
+      } catch (error) {
+        console.log(`❌ RSS fetch method failed:`, error)
+        continue
       }
-
-      const data = await response.json()
-      const xmlText = data.contents
-
-      // Parse XML (simple parsing for RSS)
-      const posts = this.parseRSSXML(xmlText)
-      console.log(`Parsed ${posts.length} posts from RSS feed`)
-
-      return posts
-    } catch (error) {
-      console.error("Error fetching RSS feed:", error)
-      return []
     }
+
+    console.error("❌ All RSS fetch methods failed")
+    return []
+  }
+
+  private async fetchWithAllOrigins(): Promise<RSSPost[]> {
+    console.log("🔄 Trying AllOrigins proxy...")
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(this.feedUrl)}`
+    const response = await fetch(proxyUrl)
+
+    if (!response.ok) {
+      throw new Error(`AllOrigins error: ${response.status}`)
+    }
+
+    const data = await response.json()
+    return this.parseRSSXML(data.contents)
+  }
+
+  private async fetchWithCorsAnywhere(): Promise<RSSPost[]> {
+    console.log("🔄 Trying CORS Anywhere proxy...")
+    const proxyUrl = `https://cors-anywhere.herokuapp.com/${this.feedUrl}`
+    const response = await fetch(proxyUrl)
+
+    if (!response.ok) {
+      throw new Error(`CORS Anywhere error: ${response.status}`)
+    }
+
+    const xmlText = await response.text()
+    return this.parseRSSXML(xmlText)
+  }
+
+  private async fetchDirect(): Promise<RSSPost[]> {
+    console.log("🔄 Trying direct fetch...")
+    const response = await fetch(this.feedUrl)
+
+    if (!response.ok) {
+      throw new Error(`Direct fetch error: ${response.status}`)
+    }
+
+    const xmlText = await response.text()
+    return this.parseRSSXML(xmlText)
   }
 
   private parseRSSXML(xmlText: string): RSSPost[] {
     try {
-      // Create a DOM parser
+      console.log("🔍 Parsing RSS XML...")
+      console.log("XML preview:", xmlText.substring(0, 500))
+
       const parser = new DOMParser()
       const xmlDoc = parser.parseFromString(xmlText, "text/xml")
 
+      // Check for parsing errors
+      const parserError = xmlDoc.querySelector("parsererror")
+      if (parserError) {
+        throw new Error("XML parsing error: " + parserError.textContent)
+      }
+
       const items = xmlDoc.querySelectorAll("item")
+      console.log(`📄 Found ${items.length} RSS items`)
+
       const posts: RSSPost[] = []
 
-      items.forEach((item) => {
+      items.forEach((item, index) => {
         const title = item.querySelector("title")?.textContent || ""
         const link = item.querySelector("link")?.textContent || ""
         const description = item.querySelector("description")?.textContent || ""
         const pubDate = item.querySelector("pubDate")?.textContent || ""
 
-        // Extract categories
+        // Extract categories (WordPress uses <category> tags)
         const categoryElements = item.querySelectorAll("category")
         const categories: string[] = []
         categoryElements.forEach((cat) => {
           const catText = cat.textContent?.trim()
-          if (catText) categories.push(catText.toLowerCase())
+          if (catText) {
+            categories.push(catText.toLowerCase())
+          }
         })
+
+        console.log(`📄 Post ${index + 1}: "${title}" - Categories: [${categories.join(", ")}]`)
 
         posts.push({
           title: this.stripHtml(title),
@@ -74,10 +121,11 @@ export class RSSParser {
         })
       })
 
+      console.log(`✅ Parsed ${posts.length} posts successfully`)
       return posts
     } catch (error) {
-      console.error("Error parsing RSS XML:", error)
-      return []
+      console.error("❌ Error parsing RSS XML:", error)
+      throw error
     }
   }
 
@@ -85,13 +133,29 @@ export class RSSParser {
     return html.replace(/<[^>]*>/g, "").trim()
   }
 
-  // Filter posts by topics
+  // Filter posts by topics with better matching
   getPostsByTopics(posts: RSSPost[], topics: string[]): RSSPost[] {
-    return posts.filter((post) => {
-      return topics.some((topic) =>
-        post.categories.some((category) => category.includes(topic) || topic.includes(category)),
-      )
+    console.log("🎯 Filtering posts by topics:", topics)
+
+    const matchingPosts = posts.filter((post) => {
+      const matches = topics.some((topic) => {
+        // Check exact match
+        const exactMatch = post.categories.includes(topic)
+        // Check partial match
+        const partialMatch = post.categories.some((category) => category.includes(topic) || topic.includes(category))
+
+        if (exactMatch || partialMatch) {
+          console.log(`✅ Post "${post.title}" matches topic "${topic}"`)
+          return true
+        }
+        return false
+      })
+
+      return matches
     })
+
+    console.log(`🎯 Found ${matchingPosts.length} matching posts`)
+    return matchingPosts
   }
 }
 
