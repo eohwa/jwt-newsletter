@@ -1,4 +1,4 @@
-// Updated RSS Feed Parser with multiple fallback methods
+// Updated RSS Parser using server-side API route
 interface RSSPost {
   title: string
   excerpt: string
@@ -16,68 +16,41 @@ export class RSSParser {
   }
 
   async getPosts(): Promise<RSSPost[]> {
-    // Try multiple methods to fetch the RSS feed
-    const methods = [() => this.fetchWithAllOrigins(), () => this.fetchWithCorsAnywhere(), () => this.fetchDirect()]
+    try {
+      console.log("🔄 Fetching RSS via server-side API...")
 
-    for (const method of methods) {
-      try {
-        const posts = await method()
-        if (posts.length > 0) {
-          console.log(`✅ RSS fetch successful with method`)
-          return posts
-        }
-      } catch (error) {
-        console.log(`❌ RSS fetch method failed:`, error)
-        continue
+      // Use our Vercel API route instead of direct fetch
+      const response = await fetch("/api/rss-feed")
+
+      if (!response.ok) {
+        throw new Error(`API route error: ${response.status}`)
       }
+
+      const data = await response.json()
+
+      if (!data.success) {
+        throw new Error(`RSS API error: ${data.error}`)
+      }
+
+      console.log("✅ RSS data received from API route")
+      console.log("Content type:", data.contentType)
+
+      return this.parseRSSXML(data.xmlContent)
+    } catch (error) {
+      console.error("❌ Error fetching RSS via API:", error)
+      return []
     }
-
-    console.error("❌ All RSS fetch methods failed")
-    return []
-  }
-
-  private async fetchWithAllOrigins(): Promise<RSSPost[]> {
-    console.log("🔄 Trying AllOrigins proxy...")
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(this.feedUrl)}`
-    const response = await fetch(proxyUrl)
-
-    if (!response.ok) {
-      throw new Error(`AllOrigins error: ${response.status}`)
-    }
-
-    const data = await response.json()
-    return this.parseRSSXML(data.contents)
-  }
-
-  private async fetchWithCorsAnywhere(): Promise<RSSPost[]> {
-    console.log("🔄 Trying CORS Anywhere proxy...")
-    const proxyUrl = `https://cors-anywhere.herokuapp.com/${this.feedUrl}`
-    const response = await fetch(proxyUrl)
-
-    if (!response.ok) {
-      throw new Error(`CORS Anywhere error: ${response.status}`)
-    }
-
-    const xmlText = await response.text()
-    return this.parseRSSXML(xmlText)
-  }
-
-  private async fetchDirect(): Promise<RSSPost[]> {
-    console.log("🔄 Trying direct fetch...")
-    const response = await fetch(this.feedUrl)
-
-    if (!response.ok) {
-      throw new Error(`Direct fetch error: ${response.status}`)
-    }
-
-    const xmlText = await response.text()
-    return this.parseRSSXML(xmlText)
   }
 
   private parseRSSXML(xmlText: string): RSSPost[] {
     try {
       console.log("🔍 Parsing RSS XML...")
       console.log("XML preview:", xmlText.substring(0, 500))
+
+      // Check if we got HTML instead of XML
+      if (xmlText.trim().toLowerCase().startsWith("<!doctype html") || xmlText.includes("<html")) {
+        throw new Error("Received HTML instead of RSS XML - check if feed URL is correct")
+      }
 
       const parser = new DOMParser()
       const xmlDoc = parser.parseFromString(xmlText, "text/xml")
@@ -90,6 +63,11 @@ export class RSSParser {
 
       const items = xmlDoc.querySelectorAll("item")
       console.log(`📄 Found ${items.length} RSS items`)
+
+      if (items.length === 0) {
+        console.log("⚠️ No RSS items found. XML structure:")
+        console.log(xmlDoc.documentElement?.outerHTML?.substring(0, 1000))
+      }
 
       const posts: RSSPost[] = []
 
@@ -141,11 +119,13 @@ export class RSSParser {
       const matches = topics.some((topic) => {
         // Check exact match
         const exactMatch = post.categories.includes(topic)
-        // Check partial match
+        // Check partial match (e.g., "talent-marketing" matches "talent")
         const partialMatch = post.categories.some((category) => category.includes(topic) || topic.includes(category))
 
         if (exactMatch || partialMatch) {
-          console.log(`✅ Post "${post.title}" matches topic "${topic}"`)
+          console.log(
+            `✅ Post "${post.title}" matches topic "${topic}" via categories: [${post.categories.join(", ")}]`,
+          )
           return true
         }
         return false
@@ -154,7 +134,7 @@ export class RSSParser {
       return matches
     })
 
-    console.log(`🎯 Found ${matchingPosts.length} matching posts`)
+    console.log(`🎯 Found ${matchingPosts.length} matching posts out of ${posts.length} total`)
     return matchingPosts
   }
 }
