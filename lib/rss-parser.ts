@@ -108,7 +108,13 @@ export class RSSParser {
   }
 
   private stripHtml(html: string): string {
-    return html.replace(/<[^>]*>/g, "").trim()
+    // First strip HTML tags
+    const withoutTags = html.replace(/<[^>]*>/g, "").trim()
+
+    // Then decode HTML entities
+    const textarea = document.createElement("textarea")
+    textarea.innerHTML = withoutTags
+    return textarea.value
   }
 
   // Filter posts by topics with better matching
