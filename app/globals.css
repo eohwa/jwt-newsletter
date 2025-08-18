@@ -1,79 +1,113 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+/* Brand typefaces */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600&display=swap');
 
+/* --------------------------------------------------------------------------
+   Assemble – global tokens & components (non-breaking update)
+   - Keeps the existing variable names used by the app
+   - Adds brand typography, topic colors, and a few component classes
+   - Aligns to the L&D whitepaper visual style (Spectral headings, Inter body,
+     generous whitespace, outlined cards, blurred sticky header, bold badges)
+   -------------------------------------------------------------------------- */
+
+/* Keep the app's custom-variant for Tailwind dark mode */
 @custom-variant dark (&:is(.dark *));
 
+/* --------------------------------------------------------------------------
+   Neutral + UI tokens (existing keys preserved)
+   -------------------------------------------------------------------------- */
 :root {
+  /* neutrals */
   --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --foreground: oklch(0.15 0 0);           /* near-black text */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.15 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  --popover-foreground: oklch(0.15 0 0);
+  --primary: oklch(0.18 0 0);
+  --primary-foreground: oklch(0.98 0 0);
   --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
+  --secondary-foreground: oklch(0.18 0 0);
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  --muted-foreground: oklch(0.56 0 0);
   --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --accent-foreground: oklch(0.18 0 0);
+  --destructive: oklch(0.72 0.21 27.3);
+  --destructive-foreground: oklch(0.2 0 0);
+  --border: oklch(0.92 0 0);
+  --input: oklch(0.92 0 0);
+  --ring: oklch(0.70 0 0);
+
+  /* charts (kept) */
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
+
   --radius: 0.625rem;
+
+  /* sidebar (kept) */
   --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.15 0 0);
+  --sidebar-primary: oklch(0.18 0 0);
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-accent-foreground: oklch(0.18 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* ----------------------------------------------------------------------
+     Assemble brand + topics
+     ---------------------------------------------------------------------- */
+  --brand-purple: #442547;         /* core accent used in badges, borders */
+  --brand-black: #000000;
+  --brand-paper: #f8f9fa;
+
+  /* Topic palette (per-board) */
+  --topic-talent-marketing: #442547;
+  --topic-employee-experience: #442547;
+  --topic-dei: #442547;
+  --topic-learning-dev: #442547;
+  --topic-data-privacy: #093E5E;
+  --topic-enterprise-data: #093E5E;
+  --topic-social-media: #3AC6CD;
+  --topic-social-health: #0860E4;
+  --topic-manufacturing: #E0310B;
+  --topic-esg-csr: #087D85;
+  --topic-supply-chain: #087D85;
+
+  /* dynamic topic color fallback */
+  --topic-color: var(--brand-purple);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  --background: oklch(0.15 0 0);
+  --foreground: oklch(0.98 0 0);
+  --card: oklch(0.15 0 0);
+  --card-foreground: oklch(0.98 0 0);
+  --popover: oklch(0.15 0 0);
+  --popover-foreground: oklch(0.98 0 0);
+  --primary: oklch(0.98 0 0);
+  --primary-foreground: oklch(0.2 0 0);
+  --secondary: oklch(0.26 0 0);
+  --secondary-foreground: oklch(0.98 0 0);
+  --muted: oklch(0.26 0 0);
+  --muted-foreground: oklch(0.70 0 0);
+  --accent: oklch(0.26 0 0);
+  --accent-foreground: oklch(0.98 0 0);
+  --destructive: oklch(0.48 0.19 25.7);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.26 0 0);
+  --input: oklch(0.26 0 0);
+  --ring: oklch(0.44 0 0);
+
+  /* topic accents read a bit brighter on dark */
+  --brand-paper: #1c1c1c;
 }
 
+/* Map tokens into tailwind's inline theme (kept) */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -113,21 +147,217 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* --------------------------------------------------------------------------
+   Base (type & element rhythm) – aligns with the whitepaper example
+   -------------------------------------------------------------------------- */
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
   body {
     @apply bg-background text-foreground;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    letter-spacing: 0.005em;
+    font-size: 16px;
+    background: var(--background);
+    color: var(--foreground);
   }
+
+  /* Spectral for headings, generous sizes using clamp */
+  h1, h2, h3, h4 {
+    font-family: "Spectral", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    font-weight: 400;
+    color: var(--foreground);
+    line-height: 1.15;
+  }
+  h1 { font-size: clamp(2.75rem, 6vw, 5rem); margin-block: 0 0.8rem; }
+  h2 { font-size: clamp(2.25rem, 4.5vw, 3.75rem); margin-block: 2.5rem 1rem; }
+  h3 { font-size: clamp(1.875rem, 3.5vw, 3.125rem); margin-block: 2rem 0.75rem; }
+  p  { font-size: clamp(1.0625rem, 1.25vw, 1.25rem); line-height: 1.8; margin-block: 1rem; }
+  blockquote { 
+    font-family: "Spectral", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    font-size: clamp(1.25rem, 1.8vw, 1.5625rem);
+    line-height: 1.6;
+    color: oklch(0.43 0 0);
+    border-left: 4px solid var(--brand-purple);
+    padding-left: 1.25rem;
+    margin: 2rem 0;
+    font-style: italic;
+  }
+  blockquote + .quote-author {
+    font-family: "Inter", sans-serif;
+    font-style: normal;
+    font-size: 0.95rem;
+    color: oklch(0.45 0 0);
+    display: block;
+    margin-top: 0.5rem;
+  }
+
+  /* Links default: high contrast with subtle underline on hover */
+  a { color: var(--foreground); text-decoration-color: color-mix(in oklab, currentColor 20%, transparent); text-underline-offset: 3px; }
+  a:hover { text-decoration-line: underline; }
 }
 
-.newsletter-gradient {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* --------------------------------------------------------------------------
+   Components that mirror the example styles (opt‑in, won't break existing pages)
+   -------------------------------------------------------------------------- */
+
+/* Sticky, blurred header */
+.header-blur {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: color-mix(in oklab, white 95%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
 }
+
+/* Hero section */
+.hero {
+  background: linear-gradient(135deg, var(--brand-paper) 0%, white 100%);
+  padding: clamp(3.5rem, 8vw, 6rem) 0 clamp(2.5rem, 6vw, 5rem);
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: min(42vw, 600px);
+  height: min(42vw, 600px);
+  background: radial-gradient(circle, color-mix(in oklab, var(--brand-purple) 5%, transparent) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.hero-badge, .badge-strong {
+  display: inline-block;
+  background: var(--brand-purple);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-family: "Inter", sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+/* Meta row used in hero */
+.hero-meta { display: flex; gap: 2rem; padding-top: 2rem; border-top: 1px solid var(--border); }
+.meta-item { display: inline-flex; align-items: center; gap: 0.5rem; font: 500 0.875rem/1.2 "Inter", sans-serif; color: oklch(0.45 0 0); }
+.meta-item img { width: 24px; height: 24px; opacity: .85; }
+
+/* Outlined card (principle card style) */
+.card-outline {
+  margin-bottom: 2rem; /* extra breathing room */
+  background: white;
+  border: 2px solid var(--brand-black);
+  border-radius: 0; /* square, editorial look */
+  padding: clamp(1.5rem, 2vw, 2.5rem);
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+.card-outline:hover { box-shadow: 0 10px 30px rgba(0,0,0,.15); transform: translateY(-2px); }
+
+.principle-number {
+  position: absolute;
+  top: -22px;
+  left: 1.5rem;
+  width: 46px; height: 46px;
+  border-radius: 9999px;
+  background: var(--brand-purple);
+  color: #fff;
+  display: grid; place-items: center;
+  font: 700 1.1rem "Inter", sans-serif;
+}
+.principle-title { font: 700 clamp(1.375rem, 2vw, 1.875rem) "Inter", sans-serif; margin-bottom: .75rem; color: var(--foreground); }
+
+/* Content sections */
+.section { margin-block: clamp(2.5rem, 6vw, 5rem); }
+.section--paper { background: var(--brand-paper); border: 1px solid var(--border); padding: clamp(1.5rem, 3vw, 2.5rem); }
+
+/* CTA panel (black background + white text) */
+.cta-panel {
+  background: var(--brand-black);
+  color: #fff;
+  text-align: center;
+  padding: clamp(2.5rem, 6vw, 5rem);
+  position: relative;
+  overflow: hidden;
+}
+.cta-panel::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -10%;
+  width: min(32vw, 400px);
+  height: min(32vw, 400px);
+  background: radial-gradient(circle, color-mix(in oklab, var(--brand-purple) 30%, transparent) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.cta-panel .cta-button {
+  display: inline-block;
+  background: white;
+  color: var(--brand-black);
+  padding: 0.95rem 2rem;
+  border-radius: .25rem;
+  font: 700 1rem "Inter", sans-serif;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.cta-panel .cta-button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,.2); }
+
+/* Visual break images */
+.visual-break img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+/* Topic badge + helpers (non-breaking: opt-in classes) */
+.topic-badge {
+  background: var(--topic-color, var(--brand-purple));
+  color: #fff;
+  font: 700 0.75rem/1 "Inter", sans-serif;
+  padding: 0.4rem 0.75rem;
+  border-radius: 9999px;
+}
+.topic-border { border-color: var(--topic-color, var(--brand-purple)); }
+.topic-text   { color: var(--topic-color, var(--brand-purple)); }
+
+/* Topic presets (attach as a modifier class next to .topic-badge or anywhere that reads --topic-color) */
+.topic--talent-marketing      { --topic-color: var(--topic-talent-marketing); }
+.topic--employee-experience   { --topic-color: var(--topic-employee-experience); }
+.topic--dei                   { --topic-color: var(--topic-dei); }
+.topic--learning-dev          { --topic-color: var(--topic-learning-dev); }
+.topic--data-privacy          { --topic-color: var(--topic-data-privacy); }
+.topic--enterprise-data       { --topic-color: var(--topic-enterprise-data); }
+.topic--social-media          { --topic-color: var(--topic-social-media); }
+.topic--social-health         { --topic-color: var(--topic-social-health); }
+.topic--manufacturing         { --topic-color: var(--topic-manufacturing); }
+.topic--esg-csr               { --topic-color: var(--topic-esg-csr); }
+.topic--supply-chain          { --topic-color: var(--topic-supply-chain); }
+
+/* Legacy helpers retained & refined */
+.newsletter-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
 
 .story-card {
-  @apply border border-gray-200 rounded-lg p-6 bg-white shadow-sm hover:shadow-md transition-shadow;
+  @apply border bg-white rounded-lg p-6 shadow-sm transition-shadow;
+  border-color: var(--border);
 }
+.story-card:hover { @apply shadow-md; }
 
-/* Remove the old static topic tag classes - we'll use dynamic colors now */
+/* Utility: editorial container widths */
+.container-narrow { max-width: 900px; margin-inline: auto; padding-inline: clamp(1rem, 5vw, 2.5rem); }
+.container-wide   { max-width: 1200px; margin-inline: auto; padding-inline: clamp(1rem, 5vw, 2.5rem); }
+
+
+/* Extra spacing for card grids to avoid overlapping borders */
+.section.container-wide.grid {
+  gap: 3rem;
+}
